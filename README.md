@@ -37,6 +37,28 @@ use_repo(
 register_toolchains("@rules_alertmanager//toolchain:all")
 ```
 
+To pin by archive and integrity instead of a git commit, replace the `git_override` with:
+
+```python
+archive_override(
+    module_name = "rules_alertmanager",
+    urls = ["https://github.com/collider-bazel-extensions/rules_alertmanager/archive/refs/tags/v0.1.1.tar.gz"],
+    strip_prefix = "rules_alertmanager-0.1.1",
+    integrity = "sha256-1MXjYV2ZafU+prsoPwy8jUs1tFM/Sccpy7lbg+qpOFM=",
+)
+```
+
+rules_kubectl isn't in the BCR either, so a consumer overrides it too:
+
+```python
+bazel_dep(name = "rules_kubectl", version = "0.2.0")
+git_override(
+    module_name = "rules_kubectl",
+    remote = "https://github.com/collider-bazel-extensions/rules_kubectl",
+    commit = "81b60ab80df46b64c612f2576ffef0a7af98ccb6",  # v0.2.0
+)
+```
+
 The `alertmanager` extension only honours the root module's `version` tags (the `mod.is_root` guard rules_nats, rules_kind and others use), so declare it in your own `MODULE.bazel`. The install primitives also pull in [rules_kubectl](https://github.com/collider-bazel-extensions/rules_kubectl) (they wrap `kubectl_apply`). The server and test rules need `python3` on the host, as rules_nats and rules_pg do.
 
 ## Config
