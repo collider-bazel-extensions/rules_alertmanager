@@ -22,7 +22,7 @@ bazel_dep(name = "rules_alertmanager", version = "0.1.0")
 git_override(
     module_name = "rules_alertmanager",
     remote = "https://github.com/collider-bazel-extensions/rules_alertmanager",
-    commit = "00bb1c587f81f94ae2099f4ac2078b9cfa2b575e",  # v0.1.0
+    commit = "<v0.1.1 commit>",
 )
 
 alertmanager = use_extension("@rules_alertmanager//:extensions.bzl", "alertmanager")

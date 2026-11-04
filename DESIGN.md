@@ -20,6 +20,11 @@ The extension is `mod.is_root`-guarded, which avoids `@alertmanager_<ver>_<plat>
 
 `alertmanager_config` returns the checked, resolved config in `OutputGroupInfo(_validation = ...)`. Bazel runs validation actions for every build of a target that depends on the config. So `bazel build //...` catches a typo'd receiver without anyone running a test, and the check isn't a separate `*_test` target that has to be remembered.
 
+The check copies the staged directory to a scratch dir before resolving
+placeholders. Generated inputs (a config from a genrule) are read-only in
+the output tree, so the copies are made writable first; v0.1.0 failed with
+"Permission denied" on a generated config (`//tests:generated_config_test`).
+
 Templates resolve relative to the config file. `alertmanager_config` therefore stages them beside `alertmanager.yml` under their basenames. The chart mounts its ConfigMap keys at `/etc/alertmanager`, also beside the config. So `templates: ["*.tmpl"]` works unchanged in the check, in the hermetic server and in the cluster.
 
 ## `${NAME}` placeholders
