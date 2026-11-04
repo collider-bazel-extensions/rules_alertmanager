@@ -1,0 +1,6 @@
+# alertmanager_server's default config: one receiver, no notifiers.
+# Alerts are accepted, grouped and queryable through the API.
+route:
+  receiver: default
+receivers:
+  - name: default

@@ -1,0 +1,176 @@
+"""In-tree tests for rules_alertmanager (no container runtime needed;
+the cluster install smoke lives in tests/install_smoke)."""
+
+load("@rules_alertmanager//:defs.bzl",
+    "alertmanager_config",
+    "alertmanager_health_check",
+    "alertmanager_install",
+    "alertmanager_routes_test",
+    "alertmanager_server",
+    "alertmanager_test",
+)
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load(":analysis_tests.bzl", "analysis_test_suite")
+
+# ---- config -------------------------------------------------------------------
+
+alertmanager_config(
+    name = "test_config",
+    src = "testdata/alertmanager.yml",
+    templates = ["testdata/rules_alertmanager.tmpl"],
+    placeholders = {"SLACK_URL": "https://hooks.slack.invalid/T000/B000/XXX"},
+)
+
+alertmanager_routes_test(
+    name = "routes_test",
+    config = ":test_config",
+    routes = {
+        "team=db severity=page": ["db-pager", "audit"],  # continue: true
+        "severity=page": "pager",
+        "team=chat": "chat",
+        "team=web": "default",
+        "alertname=Anything": "default",
+    },
+)
+
+# A deliberately wrong expectation; routes_failure_test runs it and
+# checks it fails with a useful message.
+alertmanager_routes_test(
+    name = "wrong_routes",
+    config = ":test_config",
+    routes = {"team=web": "pager"},
+    tags = ["manual"],
+)
+
+sh_test(
+    name = "routes_failure_test",
+    srcs = ["routes_failure_test.sh"],
+    args = ["$(rootpath :wrong_routes)"],
+    data = [":wrong_routes"],
+    size = "small",
+)
+
+# check-config failures: a bad config and an unresolved placeholder.
+sh_test(
+    name = "invalid_config_test",
+    srcs = ["invalid_config_test.sh"],
+    args = [
+        "$(rootpath //private:check_config.sh)",
+        "$(rootpaths //toolchain:current)",
+    ],
+    data = [
+        "testdata/alertmanager.yml",
+        "testdata/bad_receiver.yml",
+        "testdata/needs_placeholder.yml",
+        "testdata/rules_alertmanager.tmpl",
+        "//private:check_config.sh",
+        "//toolchain:current",
+    ],
+    size = "small",
+)
+
+# ---- alertmanager_test --------------------------------------------------------
+
+# Routing, continue, inhibition, silences and resolved notifications,
+# delivered to the webhook sink. SLACK_URL comes from the test's env.
+alertmanager_test(
+    name = "api_test",
+    srcs = ["api_test.sh"],
+    config = ":test_config",
+    env = {"SLACK_URL": "http://127.0.0.1:9/"},
+)
+
+# Default config (everything to the sink) and args forwarding.
+alertmanager_test(
+    name = "default_config_test",
+    srcs = ["default_config_test.sh"],
+    args = ["one", "'two words'"],
+)
+
+# No webhook sink: the server's own default config.
+alertmanager_test(
+    name = "no_sink_test",
+    srcs = ["no_sink_test.sh"],
+    webhook_sink = False,
+)
+
+# ---- alertmanager_server + health check --------------------------------------
+
+alertmanager_server(
+    name = "test_server",
+    extra_args = ["--log.level=debug"],
+    tags = ["manual"],
+)
+
+alertmanager_health_check(
+    name = "test_server_health",
+    server = ":test_server",
+    tags = ["manual"],
+)
+
+alertmanager_config(
+    name = "placeholder_config",
+    src = "testdata/needs_placeholder.yml",
+    placeholders = {"MISSING_URL": "http://127.0.0.1:9/"},
+)
+
+alertmanager_server(
+    name = "placeholder_server",
+    config = ":placeholder_config",
+    tags = ["manual"],
+)
+
+sh_test(
+    name = "server_test",
+    srcs = ["server_test.sh"],
+    args = [
+        "$(rootpath :test_server)",
+        "$(rootpath :placeholder_server)",
+    ],
+    data = [
+        ":placeholder_server",
+        ":test_server",
+    ],
+    size = "medium",
+)
+
+sh_test(
+    name = "health_check_test",
+    srcs = ["health_check_test.sh"],
+    args = ["$(rootpath :test_server_health)"],
+    data = [":test_server_health"],
+    size = "small",
+)
+
+# ---- install (no cluster: manifest + analysis) --------------------------------
+
+alertmanager_install(
+    name = "configured_install",
+    config = ":test_config",
+    tags = ["manual"],
+)
+
+sh_test(
+    name = "install_config_test",
+    srcs = ["install_config_test.sh"],
+    args = [
+        "$(rootpath //private/manifests:alertmanager.yaml)",
+        "$(rootpath :configured_install_manifest)",
+    ],
+    data = [
+        ":configured_install_manifest",
+        "//private/manifests:alertmanager.yaml",
+    ],
+    size = "small",
+)
+
+analysis_test_suite(name = "analysis_tests")
+
+# ---- pins ---------------------------------------------------------------------
+
+sh_test(
+    name = "checksums_test",
+    srcs = ["checksums_test.sh"],
+    data = ["//private:versions.bzl"],
+    size = "small",
+)

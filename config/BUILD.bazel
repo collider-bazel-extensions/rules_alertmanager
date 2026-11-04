@@ -1,0 +1,6 @@
+"""Maintainer-render values for the Alertmanager chart. Consumed only by
+//tools:render_alertmanager_<ver> at maintainer time."""
+
+package(default_visibility = ["//tools:__pkg__"])
+
+exports_files(["alertmanager-values.yaml"])

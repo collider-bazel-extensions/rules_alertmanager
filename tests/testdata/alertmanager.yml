@@ -1,0 +1,51 @@
+# Test config: sub-routes with `continue`, an inhibit rule, a template
+# and a custom placeholder (SLACK_URL). Every webhook receiver posts to
+# the alertmanager_test webhook sink; the payload's "receiver" field says
+# which route matched.
+global:
+  resolve_timeout: 5m
+
+templates:
+  - "*.tmpl"
+
+route:
+  receiver: default
+  group_by: [alertname, team]
+  group_wait: 0s
+  group_interval: 1s
+  repeat_interval: 1h
+  routes:
+    - matchers: ['team="db"']
+      receiver: db-pager
+      continue: true
+    - matchers: ['team="db"']
+      receiver: audit
+    - matchers: ['severity="page"']
+      receiver: pager
+    - matchers: ['team="chat"']
+      receiver: chat
+
+inhibit_rules:
+  - source_matchers: ['severity="page"']
+    target_matchers: ['severity="warn"']
+    equal: [alertname]
+
+receivers:
+  - name: default
+    webhook_configs:
+      - url: "${ALERTMANAGER_WEBHOOK_URL}"
+        send_resolved: true
+  - name: db-pager
+    webhook_configs:
+      - url: "${ALERTMANAGER_WEBHOOK_URL}"
+  - name: audit
+    webhook_configs:
+      - url: "${ALERTMANAGER_WEBHOOK_URL}"
+  - name: pager
+    webhook_configs:
+      - url: "${ALERTMANAGER_WEBHOOK_URL}"
+  - name: chat
+    slack_configs:
+      - api_url: "${SLACK_URL}"
+        channel: "#alerts"
+        text: '{{ template "rules_alertmanager.text" . }}'

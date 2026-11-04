@@ -1,0 +1,8 @@
+# Uses a placeholder (${MISSING_URL}) that the check is given no value
+# for, and that alertmanager_server's environment does not set.
+route:
+  receiver: hook
+receivers:
+  - name: hook
+    webhook_configs:
+      - url: "${MISSING_URL}"

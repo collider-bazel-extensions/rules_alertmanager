@@ -1,0 +1,102 @@
+"""rules_alertmanager — hermetic Prometheus Alertmanager primitives for Bazel.
+
+Three families in one repo:
+
+  Config (build time):
+    alertmanager_config        — stages alertmanager.yml + templates;
+                                 `amtool check-config` runs as a
+                                 validation action on every build
+    alertmanager_routes_test   — asserts which receivers a label set
+                                 routes to (`amtool config routes test`)
+
+  Hermetic server (test-time):
+    alertmanager_server        — long-running alertmanager; writes
+                                 $TEST_TMPDIR/<name>.env when /-/ready
+    alertmanager_health_check  — pairs with alertmanager_server
+    alertmanager_test          — sh_test macro: auto-launches a server
+                                 (plus a webhook sink) and execs the test
+
+  Cluster install (kind / production):
+    alertmanager_install              — applies the pinned Helm chart,
+                                        optionally with your config
+    alertmanager_install_health_check — paired readiness probe
+
+Pinned: Alertmanager v0.34.2 (alertmanager + amtool),
+prometheus-community alertmanager Helm chart 2.1.4.
+"""
+
+module(
+    name = "rules_alertmanager",
+    version = "0.1.0",
+)
+
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
+bazel_dep(name = "platforms", version = "1.0.0")
+
+# rules_shell is part of the public surface — `alertmanager_test` is an
+# sh_test macro. Bazel 8+ removed `native.sh_test`.
+bazel_dep(name = "rules_shell", version = "0.8.0")
+
+# Public binary toolchain: alertmanager + amtool (one upstream tarball).
+# Per-platform repos (alertmanager_<ver>_<plat>) come from the
+# `alertmanager` extension, which only honours the root module's tags.
+alertmanager = use_extension("//:extensions.bzl", "alertmanager")
+alertmanager.version(version = "0.34.2")
+use_repo(alertmanager,
+    "alertmanager_0_34_2_linux_amd64",
+    "alertmanager_0_34_2_linux_arm64",
+    "alertmanager_0_34_2_darwin_amd64",
+    "alertmanager_0_34_2_darwin_arm64",
+)
+register_toolchains("@rules_alertmanager//toolchain:all")
+
+# rules_kubectl is a public dep — `alertmanager_install` is a thin macro
+# around `kubectl_apply`.
+bazel_dep(name = "rules_kubectl", version = "0.2.0")
+git_override(
+    module_name = "rules_kubectl",
+    remote = "https://github.com/collider-bazel-extensions/rules_kubectl",
+    commit = "81b60ab80df46b64c612f2576ffef0a7af98ccb6",  # v0.2.0
+)
+
+# ---- dev-only: maintainer chart-render flow + smoke composition -------------
+
+bazel_dep(name = "rules_helm", version = "0.2.1", dev_dependency = True)
+git_override(
+    module_name = "rules_helm",
+    remote = "https://github.com/collider-bazel-extensions/rules_helm",
+    commit = "48651387d55f0c50f6d059df246ed73767100afb",  # v0.2.1
+)
+
+helm = use_extension("@rules_helm//:extensions.bzl", "helm", dev_dependency = True)
+helm.version(version = "3.20.2")
+use_repo(helm,
+    "helm_linux_amd64",
+    "helm_darwin_amd64",
+    "helm_darwin_arm64",
+)
+register_toolchains(
+    "@helm_linux_amd64//:toolchain",
+    "@helm_darwin_amd64//:toolchain",
+    "@helm_darwin_arm64//:toolchain",
+    dev_dependency = True,
+)
+
+bazel_dep(name = "rules_itest", version = "0.0.52", dev_dependency = True)
+
+bazel_dep(name = "rules_kind", version = "0.3.0", dev_dependency = True)
+git_override(
+    module_name = "rules_kind",
+    remote = "https://github.com/collider-bazel-extensions/rules_kind",
+    commit = "12a73e02fe4b9400d3dc733a3d80ce06c47b6411",  # v0.3.0 — confirmed deletion + sweep, RULES_KIND_MAX_CLUSTERS
+)
+
+# Maintainer-side: download the upstream Helm chart .tgz at the pinned
+# version. Fires only when rules_alertmanager is the root module.
+alertmanager_chart = use_extension(
+    "//tools:extensions.bzl",
+    "alertmanager_chart",
+    dev_dependency = True,
+)
+alertmanager_chart.version(version = "2.1.4")
+use_repo(alertmanager_chart, "alertmanager_chart_2_1_4")

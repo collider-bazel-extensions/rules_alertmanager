@@ -1,0 +1,81 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(":toolchain.bzl", "alertmanager_toolchain", "current_alertmanager_toolchain")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files(["toolchain.bzl"])
+
+toolchain_type(name = "alertmanager")
+
+# The resolved alertmanager + amtool for the target platform, usable as
+# `data` (e.g. //tests:invalid_config_test).
+current_alertmanager_toolchain(name = "current")
+
+# Per-platform toolchains. Each `alertmanager_<ver>_<plat>` repo (created
+# by the module extension) ships alertmanager + amtool for one platform.
+
+alertmanager_toolchain(
+    name             = "alertmanager_linux_amd64_impl",
+    version          = "0.34.2",
+    alertmanager_bin = "@alertmanager_0_34_2_linux_amd64//:alertmanager_bin",
+    amtool_bin       = "@alertmanager_0_34_2_linux_amd64//:amtool_bin",
+)
+
+toolchain(
+    name                   = "alertmanager_linux_amd64",
+    toolchain_type         = ":alertmanager",
+    exec_compatible_with   = ["@platforms//os:linux", "@platforms//cpu:x86_64"],
+    target_compatible_with = ["@platforms//os:linux", "@platforms//cpu:x86_64"],
+    toolchain              = ":alertmanager_linux_amd64_impl",
+)
+
+alertmanager_toolchain(
+    name             = "alertmanager_linux_arm64_impl",
+    version          = "0.34.2",
+    alertmanager_bin = "@alertmanager_0_34_2_linux_arm64//:alertmanager_bin",
+    amtool_bin       = "@alertmanager_0_34_2_linux_arm64//:amtool_bin",
+)
+
+toolchain(
+    name                   = "alertmanager_linux_arm64",
+    toolchain_type         = ":alertmanager",
+    exec_compatible_with   = ["@platforms//os:linux", "@platforms//cpu:arm64"],
+    target_compatible_with = ["@platforms//os:linux", "@platforms//cpu:arm64"],
+    toolchain              = ":alertmanager_linux_arm64_impl",
+)
+
+alertmanager_toolchain(
+    name             = "alertmanager_darwin_amd64_impl",
+    version          = "0.34.2",
+    alertmanager_bin = "@alertmanager_0_34_2_darwin_amd64//:alertmanager_bin",
+    amtool_bin       = "@alertmanager_0_34_2_darwin_amd64//:amtool_bin",
+)
+
+toolchain(
+    name                   = "alertmanager_darwin_amd64",
+    toolchain_type         = ":alertmanager",
+    exec_compatible_with   = ["@platforms//os:osx", "@platforms//cpu:x86_64"],
+    target_compatible_with = ["@platforms//os:osx", "@platforms//cpu:x86_64"],
+    toolchain              = ":alertmanager_darwin_amd64_impl",
+)
+
+alertmanager_toolchain(
+    name             = "alertmanager_darwin_arm64_impl",
+    version          = "0.34.2",
+    alertmanager_bin = "@alertmanager_0_34_2_darwin_arm64//:alertmanager_bin",
+    amtool_bin       = "@alertmanager_0_34_2_darwin_arm64//:amtool_bin",
+)
+
+toolchain(
+    name                   = "alertmanager_darwin_arm64",
+    toolchain_type         = ":alertmanager",
+    exec_compatible_with   = ["@platforms//os:osx", "@platforms//cpu:arm64"],
+    target_compatible_with = ["@platforms//os:osx", "@platforms//cpu:arm64"],
+    toolchain              = ":alertmanager_darwin_arm64_impl",
+)
+
+bzl_library(
+    name = "toolchain",
+    srcs = ["toolchain.bzl"],
+    deps = ["//private:providers"],
+)

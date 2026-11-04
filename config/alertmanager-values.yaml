@@ -1,0 +1,13 @@
+# Values overlaid at maintainer-render time over the chart's defaults.
+#
+# Fix the object names: the StatefulSet, Service and ConfigMap are all
+# `alertmanager` whatever the release name, which alertmanager_install's
+# rollout wait (sts/alertmanager) and config overlay (ConfigMap
+# alertmanager) rely on.
+fullnameOverride: alertmanager
+
+# Chart defaults otherwise: one replica, 50Mi PVC (kind's local-path
+# provisioner serves it), configmap-reload sidecar so a re-applied
+# ConfigMap takes effect without a restart. The default config sends
+# everything to an empty `default-receiver`; alertmanager_install(config
+# = ...) replaces it.

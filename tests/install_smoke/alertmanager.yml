@@ -1,0 +1,11 @@
+# alertmanager_install smoke config: a receiver whose name the smoke
+# looks for in the running config, plus a template mounted beside it.
+templates:
+  - "*.tmpl"
+route:
+  receiver: smoke-receiver
+  group_wait: 1s
+receivers:
+  - name: smoke-receiver
+    webhook_configs:
+      - url: "${ALERTMANAGER_WEBHOOK_URL}"

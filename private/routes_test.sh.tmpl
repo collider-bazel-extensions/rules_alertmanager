@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# alertmanager_routes_test — runs `amtool config routes test` for each
+# case (`<receivers>\t<labels>` per line) and reports every mismatch.
+set -euo pipefail
+
+root="${TEST_SRCDIR:-${RUNFILES_DIR:-$0.runfiles}}"
+resolve() {
+  local p="$1"
+  for c in "$root/_main/$p" "$root/$p" "$root/${p#../}"; do
+    [[ -e "$c" ]] && { printf '%s\n' "$c"; return; }
+  done
+  echo "alertmanager_routes_test: not in runfiles: $p" >&2
+  exit 1
+}
+AMTOOL="$(resolve '__AMTOOL__')"
+CONFIG="$(resolve '__CONFIG__')"
+CASES="$(resolve '__CASES__')"
+
+failed=0
+total=0
+while IFS=$'\t' read -r want labels; do
+  [[ -n "$want" ]] || continue
+  total=$((total + 1))
+  # shellcheck disable=SC2086  # labels are space-separated name=value args
+  if got=$("$AMTOOL" config routes test --config.file="$CONFIG" \
+          --verify.receivers="$want" $labels 2>&1); then
+    echo "PASS: {$labels} -> $want"
+  else
+    failed=$((failed + 1))
+    echo "FAIL: {$labels} routes to [$(head -1 <<<"$got")], want [$want]" >&2
+    # shellcheck disable=SC2086
+    "$AMTOOL" config routes test --config.file="$CONFIG" --tree $labels >&2 || true
+  fi
+done < "$CASES"
+
+if (( failed > 0 )); then
+  echo "$failed of $total routing case(s) failed" >&2
+  exit 1
+fi
+echo "PASS: $total routing case(s)"

@@ -1,0 +1,13 @@
+# alertmanager_test's default config (webhook_sink = True): every alert
+# goes to the test's webhook sink right away.
+route:
+  receiver: webhook
+  group_by: ["..."]   # one notification group per distinct label set
+  group_wait: 0s
+  group_interval: 1s
+  repeat_interval: 1h
+receivers:
+  - name: webhook
+    webhook_configs:
+      - url: "${ALERTMANAGER_WEBHOOK_URL}"
+        send_resolved: true

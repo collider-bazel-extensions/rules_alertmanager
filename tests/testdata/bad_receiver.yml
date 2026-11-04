@@ -1,0 +1,5 @@
+# Invalid: the route names a receiver that is not defined.
+route:
+  receiver: nowhere
+receivers:
+  - name: default

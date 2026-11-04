@@ -1,0 +1,46 @@
+"""Maintainer-only render flow.
+
+Pipeline:
+  @alertmanager_chart_<ver>//:files
+                       │
+                       ▼  helm_template (rules_helm)
+                       ▼
+       bazel-bin/tools/render_alertmanager_<ver>.yaml
+                       │
+                       ▼  bazel run //tools:render_writeback_<ver>
+                       ▼
+   private/manifests/alertmanager.yaml (committed; what consumers apply)
+
+No host helm needed at any point.
+"""
+
+load("@rules_helm//:defs.bzl", "helm_template")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+
+exports_files([
+    "render_alertmanager.sh",
+    "update_checksums.sh",
+    "versions.bzl",
+])
+
+# ---- 2.1.4 ------------------------------------------------------------------
+
+helm_template(
+    name = "render_alertmanager_2_1_4",
+    chart = ["@alertmanager_chart_2_1_4//:files"],
+    values = ["//config:alertmanager-values.yaml"],
+    namespace = "alertmanager",
+    release_name = "alertmanager",
+    include_crds = True,
+)
+
+sh_binary(
+    name = "render_writeback_2_1_4",
+    srcs = ["writeback.sh"],
+    data = [":render_alertmanager_2_1_4"],
+    args = [
+        "$(rootpath :render_alertmanager_2_1_4)",
+        "private/manifests/alertmanager.yaml",
+    ],
+    visibility = ["//visibility:public"],
+)
