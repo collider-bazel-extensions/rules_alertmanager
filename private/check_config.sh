@@ -16,6 +16,8 @@ amtool="$1"; config="$2"; out="$3"; shift 3
 work="$(mktemp -d)"
 trap 'rm -r -f -- "$work"' EXIT
 cp -L "$(dirname "$config")"/* "$work"/ 2>/dev/null || true
+# Generated inputs are read-only; the copies must be writable.
+chmod -R u+w "$work"
 cp -L "$config" "$work/alertmanager.yml"
 
 # Placeholder substitution: literal string replacement (no regex, no

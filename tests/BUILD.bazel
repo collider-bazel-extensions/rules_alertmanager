@@ -33,6 +33,28 @@ alertmanager_routes_test(
     },
 )
 
+# A generated config (read-only in the output tree) checks and routes
+# like a source one (regression: v0.1.0's check could not overwrite it).
+genrule(
+    name = "generated_yml",
+    srcs = ["testdata/alertmanager.yml"],
+    outs = ["generated/alertmanager.yml"],
+    cmd = "cp $< $@",
+)
+
+alertmanager_config(
+    name = "generated_config",
+    src = ":generated_yml",
+    templates = ["testdata/rules_alertmanager.tmpl"],
+    placeholders = {"SLACK_URL": "https://hooks.slack.invalid/T000/B000/XXX"},
+)
+
+alertmanager_routes_test(
+    name = "generated_config_test",
+    config = ":generated_config",
+    routes = {"team=db": ["db-pager", "audit"]},
+)
+
 # A deliberately wrong expectation; routes_failure_test runs it and
 # checks it fails with a useful message.
 alertmanager_routes_test(

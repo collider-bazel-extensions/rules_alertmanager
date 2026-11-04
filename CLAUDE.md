@@ -114,15 +114,16 @@ tools/update_checksums.sh 0.34.2      # re-pin binaries; --check to verify
 tools/render_alertmanager.sh 2.1.4    # re-render the chart manifest
 ```
 
-### Test results (last full run: 2026-11-03)
+### Test results (last full run: 2026-11-04)
 
-All 15 test targets pass on Linux x86_64 (Alertmanager 0.34.2): 14 in
+All 16 test targets pass on Linux x86_64 (Alertmanager 0.34.2): 15 in
 `//tests/...`, and the kind smoke on rootless podman. The 32-run parallel
 stress of the server tests is clean.
 
 | Test target | What it verifies | Result |
 |---|---|---|
 | `//tests:routes_test` | 5 routing cases incl. `continue` (two receivers) | PASSED |
+| `//tests:generated_config_test` | a generated (read-only) config checks and routes like a source one (v0.1.1 fix) | PASSED |
 | `//tests:routes_failure_test` | wrong expectation fails, naming actual receivers + tree | PASSED |
 | `//tests:invalid_config_test` | check accepts good config, rejects undefined receiver and unresolved placeholder | PASSED |
 | `//tests:api_test` | routing + continue, inhibition, silence, resolved notification via sink; env placeholders expanded | PASSED |
