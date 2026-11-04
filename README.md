@@ -18,11 +18,11 @@ No host `alertmanager`, `amtool`, `helm` or Go needed: binaries come from the pi
 ## Install (Bzlmod)
 
 ```python
-bazel_dep(name = "rules_alertmanager", version = "0.1.0")
+bazel_dep(name = "rules_alertmanager", version = "0.1.1")
 git_override(
     module_name = "rules_alertmanager",
     remote = "https://github.com/collider-bazel-extensions/rules_alertmanager",
-    commit = "<v0.1.1 commit>",
+    commit = "abd8735e9f5b8c787732c45073f121ed0416c8a5",  # v0.1.1
 )
 
 alertmanager = use_extension("@rules_alertmanager//:extensions.bzl", "alertmanager")
