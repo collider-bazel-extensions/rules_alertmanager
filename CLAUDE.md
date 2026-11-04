@@ -30,7 +30,7 @@ rules_alertmanager/
 │   ├── check_config.sh       # placeholder resolution + `amtool check-config`
 │   ├── routes_test.sh.tmpl   # `amtool config routes test --verify.receivers` per case
 │   ├── server.bzl            # alertmanager_server, alertmanager_health_check, AlertmanagerServerInfo
-│   ├── server.sh.tmpl        # runfiles resolution → launcher.py
+│   ├── server.sh.tmpl        # runfiles resolution (into variables) → launcher.py
 │   ├── launcher.py           # stage + expand config, port, /-/ready, env file, SIGTERM
 │   ├── test.bzl              # alertmanager_test macro
 │   ├── alertmanager_test_trampoline.sh  # sink → server → env → test
@@ -57,6 +57,7 @@ rules_alertmanager/
     ├── invalid_config_test.sh  # check_config.sh: good / bad receiver / unresolved placeholder
     ├── install_config_test.sh  # configured manifest: only the ConfigMap changes
     ├── checksums_test.sh     # 64-hex SHA-256 for every pinned URL
+    ├── wrapper_resolve_test.sh  # a missing runfile stops the server wrapper
     └── install_smoke/        # kind + alertmanager_install(config) + amtool in the pod
 ```
 
@@ -116,7 +117,7 @@ tools/render_alertmanager.sh 2.1.4    # re-render the chart manifest
 
 ### Test results (last full run: 2026-11-04)
 
-All 16 test targets pass on Linux x86_64 (Alertmanager 0.34.2): 15 in
+All 17 test targets pass on Linux x86_64 (Alertmanager 0.34.2): 16 in
 `//tests/...`, and the kind smoke on rootless podman. The 32-run parallel
 stress of the server tests is clean.
 
@@ -131,6 +132,7 @@ stress of the server tests is clean.
 | `//tests:no_sink_test` | no sink variables; default receiver; clustering disabled | PASSED |
 | `//tests:server_test` | env file keys, /-/ready, extra_args, SIGTERM exit 0 + env removed, unset placeholder named | PASSED |
 | `//tests:health_check_test` | exits non-zero without env file, 0 with | PASSED |
+| `//tests:wrapper_resolve_test` | a missing alertmanager / amtool stops the server wrapper, naming it, before the launcher runs | PASSED |
 | `//tests:install_config_test` | configured manifest: one ConfigMap with config + template, rest unchanged | PASSED |
 | `//tests:analysis_tests` (4) | install (with/without config), health check executables; server provider | PASSED |
 | `//tests:checksums_test` | every pinned URL has a 64-hex SHA-256 | PASSED |
