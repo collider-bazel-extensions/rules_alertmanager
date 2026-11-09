@@ -8,6 +8,22 @@ on:
   workflow_dispatch:
 
 jobs:
+  consumer:
+    # rules_alertmanager as a dependency, from the commit's git archive: a
+    # root without alertmanager.version() resolves, repeated / unsupported
+    # versions, and @rules_alertmanager//... loads.
+    name: consumer (ubuntu-latest, git archive)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bazel-contrib/setup-bazel@0.15.0
+        with:
+          bazelisk-cache: true
+          repository-cache: true
+
+      - name: Consumer checks
+        run: .github/consumer/check.sh "$RUNNER_TEMP/consumer"
+
   hermetic:
     # Config checks, routes tests, the hermetic server / alertmanager_test
     # suite, install-manifest + analysis tests and the checksum pins. No
