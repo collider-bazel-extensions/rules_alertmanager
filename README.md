@@ -22,7 +22,7 @@ bazel_dep(name = "rules_alertmanager", version = "0.1.3")
 git_override(
     module_name = "rules_alertmanager",
     remote = "https://github.com/collider-bazel-extensions/rules_alertmanager",
-    commit = "9cbc2ec5fe0b5c2fcf583bbc649013ddc8cb396f",  # v0.1.2
+    commit = "6f3c2be3f73beeadb6167c283c3208237b99f469",  # v0.1.3
 )
 ```
 
@@ -31,9 +31,9 @@ To pin by archive and integrity instead of a git commit, replace the `git_overri
 ```python
 archive_override(
     module_name = "rules_alertmanager",
-    urls = ["https://github.com/collider-bazel-extensions/rules_alertmanager/archive/refs/tags/v0.1.2.tar.gz"],
-    strip_prefix = "rules_alertmanager-0.1.2",
-    integrity = "sha256-wflh6O8sCF5fHrYkr/BWqVdqAw8s+EyzeKkeRPW4S2Y=",
+    urls = ["https://github.com/collider-bazel-extensions/rules_alertmanager/archive/refs/tags/v0.1.3.tar.gz"],
+    strip_prefix = "rules_alertmanager-0.1.3",
+    integrity = "sha256-2+krvRcpBvyTKgULBem9Mr0XY3AII1yCTGGRP9Mvc1E=",
 )
 ```
 
