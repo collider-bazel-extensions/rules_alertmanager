@@ -21,7 +21,7 @@ use with [rules_itest](https://github.com/dzbarsky/rules_itest) and
 rules_alertmanager/
 ├── MODULE.bazel              # module; toolchain registration; dev deps (helm, itest, kind)
 ├── defs.bzl                  # public API re-exports
-├── extensions.bzl            # `alertmanager.version()` → alertmanager_<ver>_<plat> repos (is_root-guarded)
+├── extensions.bzl            # `alertmanager.version()` → alertmanager_<ver>_<plat> repos (all modules' tags, deduplicated)
 ├── private/
 │   ├── versions.bzl          # ALERTMANAGER_VERSIONS: url / sha256 / strip_prefix per platform
 │   ├── repositories.bzl      # per-platform repo: release tarball → alertmanager + amtool

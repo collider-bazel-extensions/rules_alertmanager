@@ -27,7 +27,7 @@ prometheus-community alertmanager Helm chart 2.1.4.
 
 module(
     name = "rules_alertmanager",
-    version = "0.1.2",
+    version = "0.1.3",
 )
 
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
@@ -39,7 +39,8 @@ bazel_dep(name = "rules_shell", version = "0.8.0")
 
 # Public binary toolchain: alertmanager + amtool (one upstream tarball).
 # Per-platform repos (alertmanager_<ver>_<plat>) come from the
-# `alertmanager` extension, which only honours the root module's tags.
+# `alertmanager` extension, which creates them for every module's tags;
+# consumers need no wiring of their own.
 alertmanager = use_extension("//:extensions.bzl", "alertmanager")
 alertmanager.version(version = "0.34.2")
 use_repo(alertmanager,

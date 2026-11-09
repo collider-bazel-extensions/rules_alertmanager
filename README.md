@@ -18,23 +18,12 @@ No host `alertmanager`, `amtool`, `helm` or Go needed: binaries come from the pi
 ## Install (Bzlmod)
 
 ```python
-bazel_dep(name = "rules_alertmanager", version = "0.1.2")
+bazel_dep(name = "rules_alertmanager", version = "0.1.3")
 git_override(
     module_name = "rules_alertmanager",
     remote = "https://github.com/collider-bazel-extensions/rules_alertmanager",
     commit = "9cbc2ec5fe0b5c2fcf583bbc649013ddc8cb396f",  # v0.1.2
 )
-
-alertmanager = use_extension("@rules_alertmanager//:extensions.bzl", "alertmanager")
-alertmanager.version(version = "0.34.2")
-use_repo(
-    alertmanager,
-    "alertmanager_0_34_2_darwin_amd64",
-    "alertmanager_0_34_2_darwin_arm64",
-    "alertmanager_0_34_2_linux_amd64",
-    "alertmanager_0_34_2_linux_arm64",
-)
-register_toolchains("@rules_alertmanager//toolchain:all")
 ```
 
 To pin by archive and integrity instead of a git commit, replace the `git_override` with:
@@ -59,7 +48,13 @@ git_override(
 )
 ```
 
-The `alertmanager` extension only honours the root module's `version` tags (the `mod.is_root` guard rules_nats, rules_kind and others use), so declare it in your own `MODULE.bazel`. The install primitives also pull in [rules_kubectl](https://github.com/collider-bazel-extensions/rules_kubectl) (they wrap `kubectl_apply`). The server and test rules need `python3` on the host, as rules_nats and rules_pg do.
+rules_alertmanager's own `MODULE.bazel` fetches Alertmanager 0.34.2 and registers the toolchain, so no `alertmanager` extension wiring is needed.
+
+The `alertmanager` extension creates `@alertmanager_<ver>_<plat>` repos for every module's `alertmanager.version(...)` tags, deduplicated. A version you add yourself gives you repos to `use_repo`; the registered toolchain stays on rules_alertmanager's pinned version. A version not pinned in `private/versions.bzl` fails with a message naming `alertmanager.version`. Before v0.1.3 only the root module's tags counted, so a root without `alertmanager.version(version = "0.34.2")` failed with `does not generate repository "alertmanager_0_34_2_darwin_amd64"`; the `alertmanager.version(...)` / `use_repo(...)` / `register_toolchains(...)` lines earlier READMEs asked for are harmless but no longer needed.
+
+The release archive leaves out `tests/` and `tools/`, which load dev-only modules (rules_itest, rules_kind, rules_helm), so `bazel query @rules_alertmanager//...` works with `archive_override`. A `git_override` checks out the whole repository, and `@rules_alertmanager//...` then fails to load; name packages instead (`@rules_alertmanager//:all`, `@rules_alertmanager//toolchain:all`).
+
+The install primitives also pull in [rules_kubectl](https://github.com/collider-bazel-extensions/rules_kubectl) (they wrap `kubectl_apply`). The server and test rules need `python3` on the host, as rules_nats and rules_pg do.
 
 ## Config
 

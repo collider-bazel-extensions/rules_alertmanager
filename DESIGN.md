@@ -14,7 +14,7 @@ Keeping all three in one repo means one toolchain and one config rule (`alertman
 
 The upstream release tarball ships `alertmanager` and `amtool` together, so there is one repo per platform and no separate CLI pin (rules_nats has to pair two releases). Checksums are the release's `sha256sums.txt`. `tools/update_checksums.sh` re-derives them and cross-checks each against a download. `//tests:checksums_test` fails on any empty or malformed pin.
 
-The extension is `mod.is_root`-guarded, which avoids `@alertmanager_<ver>_<plat>` collisions when the module is consumed transitively.
+The extension creates `@alertmanager_<ver>_<plat>` repos for every module's `alertmanager.version()` tags, deduplicated. The repos are named by version, so tags from different modules can't collide. Through v0.1.2 it honoured only the root's tags (`mod.is_root`), but rules_alertmanager's own `MODULE.bazel` imports `alertmanager_0_34_2_*` and registers the toolchain for every consumer, so a root without the tag failed to resolve, and a root repeating it crashed the extension (same bug as rules_atlas#12). An unsupported version fails naming `alertmanager.version`. CI's `consumer` job (`.github/consumer/check.sh`) checks this from the commit's `git archive`, and that `.gitattributes` keeps `tests/` and `tools/` (dev-only modules) out of the release archive.
 
 ## Config validation as a validation action
 
