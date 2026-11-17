@@ -22,7 +22,7 @@ bazel_dep(name = "rules_alertmanager", version = "0.1.4")
 git_override(
     module_name = "rules_alertmanager",
     remote = "https://github.com/collider-bazel-extensions/rules_alertmanager",
-    commit = "6f3c2be3f73beeadb6167c283c3208237b99f469",  # v0.1.3
+    commit = "b7858fb62d74f111de937a576b90de0476c98010",  # v0.1.4
 )
 ```
 
@@ -33,7 +33,7 @@ archive_override(
     module_name = "rules_alertmanager",
     urls = ["https://github.com/collider-bazel-extensions/rules_alertmanager/archive/refs/tags/v0.1.4.tar.gz"],
     strip_prefix = "rules_alertmanager-0.1.4",
-    integrity = "sha256-2+krvRcpBvyTKgULBem9Mr0XY3AII1yCTGGRP9Mvc1E=",
+    integrity = "sha256-IZBMDE/x7iL/guEqo+tjWWiD+V69MAPqae54SvXoPC8=",
 )
 ```
 
