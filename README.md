@@ -18,7 +18,7 @@ No host `alertmanager`, `amtool`, `helm` or Go needed: binaries come from the pi
 ## Install (Bzlmod)
 
 ```python
-bazel_dep(name = "rules_alertmanager", version = "0.1.3")
+bazel_dep(name = "rules_alertmanager", version = "0.1.4")
 git_override(
     module_name = "rules_alertmanager",
     remote = "https://github.com/collider-bazel-extensions/rules_alertmanager",
@@ -31,8 +31,8 @@ To pin by archive and integrity instead of a git commit, replace the `git_overri
 ```python
 archive_override(
     module_name = "rules_alertmanager",
-    urls = ["https://github.com/collider-bazel-extensions/rules_alertmanager/archive/refs/tags/v0.1.3.tar.gz"],
-    strip_prefix = "rules_alertmanager-0.1.3",
+    urls = ["https://github.com/collider-bazel-extensions/rules_alertmanager/archive/refs/tags/v0.1.4.tar.gz"],
+    strip_prefix = "rules_alertmanager-0.1.4",
     integrity = "sha256-2+krvRcpBvyTKgULBem9Mr0XY3AII1yCTGGRP9Mvc1E=",
 )
 ```
@@ -221,3 +221,9 @@ See [DESIGN.md](DESIGN.md) for the architecture and trade-offs.
 Want Bazel rules for another tool or service?
 [Request a rules package](https://github.com/collider-bazel-extensions/.github/issues/new?template=request-a-rules-package.yml).
 The [organization page](https://github.com/collider-bazel-extensions) lists every package.
+
+## License
+
+[Apache License 2.0](LICENSE) (SPDX: `Apache-2.0`).
+
+Manifests in `private/manifests/` that are rendered from upstream charts or releases remain under their upstream projects' licences.
